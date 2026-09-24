@@ -1,4 +1,4 @@
-````markdown
+
 # ✈️ NaviTrip AI — Multi-Agent Travel Decision & Planning System
 
 NaviTrip AI is an AI-powered travel decision and planning system that transforms a natural-language travel request into a practical, structured travel plan.
@@ -351,4 +351,4 @@ A specific license will be added before the repository is published.
 AI & Data Science Graduate
 
 ```
-```
+
