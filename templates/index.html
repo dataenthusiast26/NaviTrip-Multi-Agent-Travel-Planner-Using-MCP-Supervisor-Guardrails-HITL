@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NaviTrip AI</title>
+
+    <!-- Frontend stylesheet -->
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- =========================================
+         PAGE BACKGROUND
+    ========================================== -->
+
+    <div class="page-background"></div>
+
+
+    <!-- =========================================
+         MAIN APPLICATION
+    ========================================== -->
+
+    <main class="app-container">
+
+
+        <!-- =====================================
+             HERO
+        ====================================== -->
+
+        <section class="hero-section">
+
+            <div class="brand-badge">
+                ✈️ NaviTrip AI
+                <span>
+                    Multi-Agent Travel Intelligence
+                </span>
+            </div>
+
+
+            <h1>
+                Plan Your Perfect Trip with AI
+            </h1>
+
+
+            <p>
+                Search flights, discover hotels, check weather,
+                analyze your budget, and review your itinerary
+                before the final plan is created.
+            </p>
+
+        </section>
+
+
+
+        <!-- =====================================
+             TRAVEL PLANNER
+        ====================================== -->
+
+        <section class="planner-card">
+
+            <div class="planner-header">
+
+                <div>
+
+                    <h2>
+                        Where do you want to go?
+                    </h2>
+
+                    <p>
+                        Tell NaviTrip your destination,
+                        dates, budget, interests, or travel style.
+                    </p>
+
+                </div>
+
+
+                <div class="online-status">
+
+                    <span class="status-dot"></span>
+
+                    Online
+
+                </div>
+
+            </div>
+
+
+
+            <!-- INPUT -->
+
+            <div class="input-area">
+
+                <textarea
+                    id="userInput"
+                    placeholder="Example: Plan a 7-day trip to Japan from Mumbai under ₹2.5 lakh including flights, hotels and sightseeing..."
+                ></textarea>
+
+
+                <button
+                    id="sendBtn"
+                    onclick="sendMessage()"
+                >
+
+                    <span id="btnText">
+                        Generate Draft
+                    </span>
+
+                    <span
+                        id="btnLoader"
+                        class="loader hidden"
+                    ></span>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- QUICK PROMPTS -->
+
+            <div class="quick-prompts">
+
+                <button
+                    onclick="setPrompt('Plan a 5-day trip to Goa under ₹50,000 including flights, hotels and sightseeing.')"
+                >
+                    🏖️ Goa Trip
+                </button>
+
+
+                <button
+                    onclick="setPrompt('Plan a 7-day trip to Japan from Mumbai under ₹2.5 lakh including flights, hotels and sightseeing.')"
+                >
+                    🗾 Japan Trip
+                </button>
+
+
+                <button
+                    onclick="setPrompt('Plan a 6-day Thailand trip for two people with hotels and sightseeing.')"
+                >
+                    🌴 Thailand Trip
+                </button>
+
+
+                <button
+                    onclick="setPrompt('Plan a 4-day Dubai trip with flights, hotels, weather and budget analysis.')"
+                >
+                    🏙️ Dubai Trip
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             WORKFLOW
+        ====================================== -->
+
+        <section
+            id="workflowSection"
+            class="workflow-section hidden"
+        >
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-label">
+                        SUPERVISOR AGENT
+                    </span>
+
+                    <h2>
+                        Execution Plan
+                    </h2>
+
+                </div>
+
+
+                <span
+                    id="guardrailBadge"
+                    class="guardrail-badge"
+                >
+                    Guardrail pending
+                </span>
+
+            </div>
+
+
+
+            <!-- GUARDRAIL -->
+
+            <div class="workflow-item">
+
+                <div class="workflow-icon">
+                    🛡️
+                </div>
+
+
+                <div class="workflow-info">
+
+                    <strong>
+                        Input Guardrail
+                    </strong>
+
+                    <span id="guardrailText">
+                        Waiting...
+                    </span>
+
+                </div>
+
+
+                <span
+                    id="guardrailIndicator"
+                    class="workflow-indicator"
+                >
+                    •
+                </span>
+
+            </div>
+
+
+
+            <!-- SUPERVISOR -->
+
+            <div class="workflow-item">
+
+                <div class="workflow-icon">
+                    🤖
+                </div>
+
+
+                <div class="workflow-info">
+
+                    <strong>
+                        Supervisor Agent
+                    </strong>
+
+                    <span id="supervisorText">
+                        Waiting...
+                    </span>
+
+                </div>
+
+
+                <span
+                    id="supervisorIndicator"
+                    class="workflow-indicator"
+                >
+                    •
+                </span>
+
+            </div>
+
+
+
+            <!-- SELECTED AGENTS -->
+
+            <div class="workflow-item">
+
+                <div class="workflow-icon">
+                    🧩
+                </div>
+
+
+                <div class="workflow-info">
+
+                    <strong>
+                        Selected Specialist Agents
+                    </strong>
+
+
+                    <div
+                        id="agentChips"
+                        class="agent-chips"
+                    >
+                        Waiting for Supervisor...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- SUPERVISOR REASONING -->
+
+            <div
+                id="supervisorReasoning"
+                class="supervisor-reasoning"
+            ></div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             RESULTS
+        ====================================== -->
+
+        <section
+            id="resultSection"
+            class="result-section hidden"
+        >
+
+            <div class="section-header">
+
+                <div>
+
+                    <span class="section-label">
+                        TRAVEL INTELLIGENCE
+                    </span>
+
+                    <h2>
+                        Your AI Travel Plan
+                    </h2>
+
+                    <p
+                        id="threadInfo"
+                        class="thread-info"
+                    >
+                        Thread ID: -
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="copy-button"
+                    onclick="copyResult()"
+                >
+                    📋 Copy Results
+                </button>
+
+            </div>
+
+
+
+            <!-- SPECIALIST RESULT CARDS -->
+
+            <div class="results-grid">
+
+
+                <!-- FLIGHTS -->
+
+                <div class="result-card">
+
+                    <div class="result-card-header">
+
+                        <span class="result-icon">
+                            ✈️
+                        </span>
+
+                        <h3>
+                            Flights
+                        </h3>
+
+                    </div>
+
+
+                    <div
+                        id="flightResults"
+                        class="result-content"
+                    >
+                        No flight information.
+                    </div>
+
+                </div>
+
+
+
+                <!-- HOTELS -->
+
+                <div class="result-card">
+
+                    <div class="result-card-header">
+
+                        <span class="result-icon">
+                            🏨
+                        </span>
+
+                        <h3>
+                            Hotels
+                        </h3>
+
+                    </div>
+
+
+                    <div
+                        id="hotelResults"
+                        class="result-content"
+                    >
+                        No hotel information.
+                    </div>
+
+                </div>
+
+
+
+                <!-- WEATHER -->
+
+                <div class="result-card">
+
+                    <div class="result-card-header">
+
+                        <span class="result-icon">
+                            🌤️
+                        </span>
+
+                        <h3>
+                            Weather
+                        </h3>
+
+                    </div>
+
+
+                    <div
+                        id="weatherResults"
+                        class="result-content"
+                    >
+                        No weather information.
+                    </div>
+
+                </div>
+
+
+
+                <!-- BUDGET -->
+
+                <div class="result-card">
+
+                    <div class="result-card-header">
+
+                        <span class="result-icon">
+                            💰
+                        </span>
+
+                        <h3>
+                            Budget Analysis
+                        </h3>
+
+                    </div>
+
+
+                    <div
+                        id="budgetResults"
+                        class="result-content"
+                    >
+                        No budget information.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ITINERARY -->
+
+            <div class="result-card itinerary-card">
+
+                <div class="result-card-header">
+
+                    <span class="result-icon">
+                        🗺️
+                    </span>
+
+                    <h3>
+                        Draft Itinerary
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="itineraryResults"
+                    class="result-content itinerary-content"
+                >
+                    No itinerary generated.
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             HUMAN IN THE LOOP
+        ====================================== -->
+
+        <section
+            id="approvalSection"
+            class="approval-section hidden"
+        >
+
+            <div class="approval-icon">
+                👤
+            </div>
+
+
+            <div class="approval-content">
+
+                <span class="section-label">
+                    HUMAN-IN-THE-LOOP
+                </span>
+
+
+                <h2>
+                    Review the draft itinerary
+                </h2>
+
+
+                <p id="approvalRequest">
+                    Approve the draft or provide feedback
+                    before the final plan is generated.
+                </p>
+
+
+                <textarea
+                    id="approvalFeedback"
+                    class="feedback-input"
+                    placeholder="Tell NaviTrip what you'd like to change..."
+                ></textarea>
+
+
+                <div class="approval-actions">
+
+                    <button
+                        id="approveBtn"
+                        class="approve-button"
+                        onclick="submitApproval(true)"
+                    >
+                        ✓ Approve & Generate Final
+                    </button>
+
+
+                    <button
+                        id="reviseBtn"
+                        class="revise-button"
+                        onclick="submitApproval(false)"
+                    >
+                        ✎ Revise Using Feedback
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             FINAL RESPONSE
+        ====================================== -->
+
+        <section
+            id="finalSection"
+            class="final-section hidden"
+        >
+
+            <div class="final-card">
+
+                <div class="final-header">
+
+                    <div class="final-icon">
+                        ✨
+                    </div>
+
+
+                    <div>
+
+                        <span class="section-label">
+                            FINAL TRAVEL PLAN
+                        </span>
+
+                        <h2>
+                            Your NaviTrip Plan
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="finalResponse"
+                    class="final-response"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             ERROR
+        ====================================== -->
+
+        <section
+            id="errorBox"
+            class="error-box hidden"
+        ></section>
+
+
+    </main>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer>
+
+        NaviTrip AI · FastAPI · LangGraph · MCP · Groq · PostgreSQL
+
+    </footer>
+
+
+    <!-- Markdown -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    ></script>
+
+
+    <!-- Our JavaScript -->
+
+    <script
+        src="/static/script.js"
+    ></script>
+
+
+</body>
+
+</html>
