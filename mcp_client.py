@@ -121,6 +121,12 @@ def run_async(coro):
     execute the coroutine in a separate thread with its own event loop.
     Otherwise, run it directly.
     """
+    
+    '''
+    asyncio.get_running_loop() checks whether the current thread already has a running event loop.
+    If it doesn't, Python raises a RuntimeError. Your code catches it and executes the coroutine directly using asyncio.run().
+    Notice that this particular RuntimeError is expected. It doesn't necessarily indicate a problem.
+    '''
     try:
         asyncio.get_running_loop()
     except RuntimeError:
@@ -128,6 +134,11 @@ def run_async(coro):
 
     result = []
     error = []
+
+    '''
+    The runner() function executes the asynchronous operation in the new thread.
+    If execution succeeds, it stores the result. If it fails, it captures the exception so the calling function can raise it.
+    '''
 
     def runner():
         try:
@@ -138,7 +149,8 @@ def run_async(coro):
     thread = threading.Thread(target=runner)
     thread.start()
     thread.join()
-
+# Because you're using join(), this function is still synchronous from the caller's perspective.
+# The separate thread is used to avoid the event-loop conflict, not to make the agent run in the background.
     if error:
         raise error[0]
 
