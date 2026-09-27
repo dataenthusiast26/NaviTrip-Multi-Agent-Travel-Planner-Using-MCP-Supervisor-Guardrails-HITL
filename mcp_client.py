@@ -71,26 +71,22 @@ client = MultiServerMCPClient(
             )
         },
 
-
         # ----------------------------------
         # AviationStack MCP
         # ----------------------------------
 
         "aviationstack": {
-            # AviationStack MCP runs locally
-            # through STDIO.
+            # AviationStack MCP runs locally through STDIO.
             "transport": "stdio",
 
-            # uvx runs the AviationStack MCP
-            # package.
+            # uvx runs the AviationStack MCP package.
             "command": "uvx",
 
             "args": [
                 "aviationstack-mcp"
             ],
 
-            # Pass AviationStack API key
-            # to the MCP server.
+            # Pass AviationStack API key to the MCP server.
             "env": AVIATION_ENV
         },
 
@@ -100,12 +96,10 @@ client = MultiServerMCPClient(
         # ----------------------------------
 
         "weather": {
-            # Our custom Weather MCP server
-            # runs locally.
+            # Our custom Weather MCP server runs locally.
             "transport": "stdio",
 
-            # Use the same Python environment
-            # running this MCP client.
+            # Use the same Python environment running this MCP client.
             "command": sys.executable,
 
             # Start the custom Weather MCP server.
@@ -113,8 +107,7 @@ client = MultiServerMCPClient(
                 str(WEATHER_SERVER_PATH)
             ],
 
-            # Pass OpenWeather API key
-            # to the MCP server.
+            # Pass OpenWeather API key to the MCP server.
             "env": WEATHER_ENV
         }
     }
