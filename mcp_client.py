@@ -295,35 +295,26 @@ async def get_all_tools():
 
 search_tool = None
 
-
 async def initialize_tavily_tools():
     """
     Discover and store the Tavily search tool.
     """
-
     global search_tool
 
     if search_tool is not None:
         return
 
-    tools = await client.get_tools(
-        server_name="tavily"
-    )
+    tools = await client.get_tools(server_name="tavily")
 
     tools_by_name = {
         tool.name: tool
         for tool in tools
     }
 
-    search_tool = tools_by_name.get(
-        "tavily_search"
-    )
+    search_tool = tools_by_name.get( "tavily_search")
 
     if search_tool is None:
-
-        available_tools = ", ".join(
-            tools_by_name.keys()
-        )
+        available_tools = ", ".join( tools_by_name.keys() )
 
         raise RuntimeError(
             "Tavily MCP connected, but the "
@@ -332,19 +323,14 @@ async def initialize_tavily_tools():
             f"{available_tools or 'none'}"
         )
 
-
 def tavily_mcp_search(query: str):
-    return run_async(
-        _tavily_mcp_search(query)
-    )
+    return run_async( _tavily_mcp_search(query) )
 
 
 async def _tavily_mcp_search(query: str):
     await initialize_tavily_tools()
 
-    return await search_tool.ainvoke(
-        {"query": query}
-    )
+    return await search_tool.ainvoke( {"query": query})
 
 
 # ==========================================
@@ -364,9 +350,7 @@ async def initialize_aviation_tools():
     if aviation_tools:
         return
 
-    tools = await client.get_tools(
-        server_name="aviationstack"
-    )
+    tools = await client.get_tools( server_name="aviationstack" )
 
     aviation_tools = {
         tool.name: tool
@@ -412,23 +396,18 @@ async def _aviation_mcp_call(
             f"{available_tools or 'none'}"
         )
 
-    return await tool.ainvoke(
-        tool_args or {}
-    )
+    return await tool.ainvoke( tool_args or {} )
 
 # ==========================================
 # Weather MCP
 # ==========================================
-
 weather_tool = None
 forecast_tool = None
-
 
 async def initialize_weather_tools():
     """
     Discover and store the Weather MCP tools.
     """
-
     global weather_tool, forecast_tool
 
     if (
@@ -437,40 +416,28 @@ async def initialize_weather_tools():
     ):
         return
 
-    tools = await client.get_tools(
-        server_name="weather"
-    )
+    tools = await client.get_tools(server_name="weather" )
 
     tools_by_name = {
         tool.name: tool
         for tool in tools
     }
 
-    weather_tool = tools_by_name.get(
-        "get_current_weather"
-    )
+    weather_tool = tools_by_name.get( "get_current_weather" )
 
-    forecast_tool = tools_by_name.get(
-        "get_forecast"
-    )
+    forecast_tool = tools_by_name.get( "get_forecast")
 
     missing_tools = []
 
     if weather_tool is None:
-        missing_tools.append(
-            "get_current_weather"
-        )
+        missing_tools.append( "get_current_weather" )
 
     if forecast_tool is None:
-        missing_tools.append(
-            "get_forecast"
-        )
+        missing_tools.append("get_forecast")
 
     if missing_tools:
 
-        available_tools = ", ".join(
-            tools_by_name.keys()
-        )
+        available_tools = ", ".join( tools_by_name.keys() )
 
         raise RuntimeError(
             "Missing Weather MCP tools: "
@@ -481,38 +448,29 @@ async def initialize_weather_tools():
 
 
 def weather_mcp_search(city: str):
-    return run_async(
-        _weather_mcp_search(city)
-    )
+    return run_async( _weather_mcp_search(city) )
 
 
 async def _weather_mcp_search(city: str):
     await initialize_weather_tools()
 
-    return await weather_tool.ainvoke(
-        {"city": city}
-    )
+    return await weather_tool.ainvoke( {"city": city} )
 
 
 def forecast_mcp_search(city: str):
-    return run_async(
-        _forecast_mcp_search(city)
-    )
+    return run_async( _forecast_mcp_search(city) )
 
 
 async def _forecast_mcp_search(city: str):
     await initialize_weather_tools()
 
-    return await forecast_tool.ainvoke(
-        {"city": city}
-    )
+    return await forecast_tool.ainvoke( {"city": city} )
 
 # ==========================================
 # Extract destination
 # ==========================================
 
 from langchain_groq import ChatGroq
-
 
 llm = ChatGroq(
     model="openai/gpt-oss-20b",
