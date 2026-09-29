@@ -167,6 +167,7 @@ async def get_tavily_tools():
     """
 
     tools = await client.get_tools( server_name="tavily" )
+    # This means: "Tell me what tools this MCP server provides.
 
     print("\nAvailable Tavily MCP tools:")
 
@@ -223,10 +224,7 @@ async def get_all_tools():
     Discover tools from all configured
     MCP servers.
     """
-
     all_tools = []
-
-
     # ----------------------------------
     # Tavily
     # ----------------------------------
@@ -244,7 +242,6 @@ async def get_all_tools():
     except Exception as error:
         print( f"\nCould not connect to tavily MCP:\n{error}\n")
 
-
     # ----------------------------------
     # AviationStack
     # ----------------------------------
@@ -261,7 +258,6 @@ async def get_all_tools():
 
     except Exception as error:
         print(f"\nCould not connect to aviationstack MCP:\n{error}\n")
-
 
     # ----------------------------------
     # Weather
@@ -288,7 +284,6 @@ async def get_all_tools():
 
     return all_tools
 
-
 # ==========================================
 # Tavily MCP
 # ==========================================
@@ -310,18 +305,14 @@ async def initialize_tavily_tools():
         tool.name: tool
         for tool in tools
     }
+    # This converts the tools into a dictionary.
 
     search_tool = tools_by_name.get( "tavily_search")
 
     if search_tool is None:
         available_tools = ", ".join( tools_by_name.keys() )
 
-        raise RuntimeError(
-            "Tavily MCP connected, but the "
-            "'tavily_search' tool was not found. "
-            f"Available tools: "
-            f"{available_tools or 'none'}"
-        )
+        raise RuntimeError( f"Tavily MCP connected, but the 'tavily_search' tool was not found. Available tools: {available_tools or 'none'}" )
 
 def tavily_mcp_search(query: str):
     return run_async( _tavily_mcp_search(query) )
@@ -358,10 +349,7 @@ async def initialize_aviation_tools():
     }
 
     if not aviation_tools:
-        raise RuntimeError(
-            "AviationStack MCP connected "
-            "but returned no tools."
-        )
+        raise RuntimeError( "AviationStack MCP connected but returned no tools.")
 
 
 def aviation_mcp_call(
