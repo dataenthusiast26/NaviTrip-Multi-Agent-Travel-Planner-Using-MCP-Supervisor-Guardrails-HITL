@@ -243,8 +243,7 @@ User request:
 
         guardrail_raw = _llm_text(
             (
-                "You are the input guardrail for a "
-                "travel-planning application. "
+                "You are the input guardrail for a travel-planning application. "
                 "Return strict JSON only."
             ),
             guardrail_prompt,
@@ -282,18 +281,16 @@ User request:
         ],
     }
 
-
 # ============================================================
 # GUARDRAIL ROUTER
 # ============================================================
 
 def route_after_guardrail( state: TravelState ):
 
-    if state.get("guardrail_allowed", False,):
+    if state.get("guardrail_allowed", False):
         return "supervisor"
 
     return "guardrail_blocked"
-
 
 # ============================================================
 # GUARDRAIL BLOCKED
@@ -304,8 +301,7 @@ def guardrail_blocked_agent( state: TravelState ):
     reason = (
         state.get("guardrail_reason")
         or
-        "This request was blocked by the "
-        "travel input guardrail."
+        "This request was blocked by the travel input guardrail."
     )
 
     return {
@@ -314,7 +310,6 @@ def guardrail_blocked_agent( state: TravelState ):
             AIMessage( content=reason)
         ],
     }
-
 
 # ============================================================
 # SUPERVISOR AGENT
@@ -426,8 +421,7 @@ User request:
 
         supervisor_raw = _llm_text(
             (
-                "You route work to travel specialist "
-                "agents. Return strict JSON only."
+                "You route work to travel specialist agents. Return strict JSON only."
             ),
             supervisor_prompt,
         )
@@ -439,14 +433,12 @@ User request:
         selected_agents = [
             name
             for name in AGENT_ORDER
-            if name in requested_agents
-            and name in KNOWN_AGENTS
+            if name in requested_agents and name in KNOWN_AGENTS
         ]
 
         # Itinerary is always required for the
         # integrated travel plan.
         if "itinerary_agent" not in selected_agents:
-
             selected_agents.append( "itinerary_agent" )
 
         constraints = _empty_constraints()
@@ -454,7 +446,6 @@ User request:
         parsed_constraints = parsed.get( "trip_constraints",{}, )
 
         if isinstance( parsed_constraints, dict,):
-
             constraints.update( parsed_constraints)
 
         reasoning = str( parsed.get( "reasoning", "", )).strip()
@@ -470,9 +461,7 @@ User request:
         constraints = ( _empty_constraints() )
 
         reasoning = (
-            "Supervisor parsing failed, so the "
-            "original full travel workflow was "
-            "selected as a safe fallback."
+            "Supervisor parsing failed, so the original full travel workflow was selected as a safe fallback."
         )
 
     print( "SELECTED AGENTS:", selected_agents, flush=True )
@@ -522,6 +511,7 @@ def route_from_supervisor( state: TravelState):
 # ROUTE AFTER SPECIALIST
 # ============================================================
 
+# After the current specialist finishes, figure out which selected specialist should run next.
 def route_after_agent( current_agent: str):
 
     def route( state: TravelState,) -> str:
@@ -531,9 +521,7 @@ def route_after_agent( current_agent: str):
         current_index = (AGENT_ORDER.index( current_agent ) )
 
         for next_agent in AGENT_ORDER[ current_index + 1: ]:
-
             if next_agent in selected:
-
                 return next_agent
 
         # After all selected specialists,
@@ -546,12 +534,11 @@ def route_after_agent( current_agent: str):
     return route
 
 
-
 # =========================
-# Flight Agent Prompt
+# Flight Agent
 # =========================
 
-FLIGHT_AGENT_PROMPT = """
+FLIGHT_AGENT_PROMPT = f"""
 You are a travel flight expert.
 
 User Query:
@@ -564,7 +551,6 @@ Airline Information:
 {airline_data}
 
 Generate:
-
 1. Likely departure airport
 2. Likely arrival airport
 3. Airlines serving this route
@@ -576,10 +562,6 @@ Generate:
 Return concise travel guidance.
 """
 
-# =========================
-# Flight Agent
-# =========================
-
 def flight_agent(state: TravelState):
 
     print("\nINSIDE FLIGHT AGENT\n")
@@ -587,8 +569,7 @@ def flight_agent(state: TravelState):
     query = state["user_query"]
 
     try:
-        # aviation_mcp_call() already handles
-        # async execution through mcp_client.run_async().
+        # aviation_mcp_call() already handles async execution through mcp_client.run_async().
         # Do NOT wrap it with asyncio.run() here.
 
         airports = aviation_mcp_call("list_airports" )
@@ -622,10 +603,10 @@ def flight_agent(state: TravelState):
         "messages": [AIMessage(content= "Flight recommendations generated") ],
         "llm_calls": state.get("llm_calls", 0) + 1
     }
+    
 # =========================
 # Hotel Agent
 # =========================
-
 def hotel_agent(state: TravelState):
     """
     Search for hotels using Tavily MCP.
@@ -643,7 +624,7 @@ def hotel_agent(state: TravelState):
 
         hotel_results = (
             "Live hotel search is temporarily unavailable. "
-            "Provide general accommodation and neighborhood "
+            "Provide general accommodation and neighborhood 
             "guidance based on the destination and clearly "
             "label it as non-live advice."
         )
@@ -651,9 +632,7 @@ def hotel_agent(state: TravelState):
     return {
         "hotel_results": hotel_results,
         "messages": [
-            AIMessage(
-                content="Hotel information fetched."
-            )
+            AIMessage( content="Hotel information fetched." )
         ]
     }
 
@@ -749,9 +728,7 @@ If exact live prices are unavailable, clearly label estimates as approximate.
 
     return {
         "budget_results": response.content,
-        "messages": [
-            AIMessage(content="Travel budget estimated.")
-        ],
+        "messages": [ AIMessage(content="Travel budget estimated.") ],
         "llm_calls": state.get("llm_calls", 0) + 1
     }
     
@@ -806,19 +783,6 @@ Create a clear draft that is ready for human review.
         "llm_calls": state.get("llm_calls", 0) + 1,
     }
     
-        
-#############################
-
-'''
-Flight Agent ──→ flight_results ──┐
-                                  │
-Hotel Agent ───→ hotel_results ───┤
-                                  │
-Weather Agent → weather_results ──┼──→ Itinerary Agent
-                                  │
-User ──────────→ user_query ──────┘
-
-'''
 
 # ============================================================
 # HUMAN-IN-THE-LOOP
@@ -858,9 +822,7 @@ def human_approval_agent( state: TravelState ):
         "approved": approved,
         "human_feedback": human_feedback,
         "messages": [
-            AIMessage(
-                content=( "Human approval step completed.")
-            )
+            AIMessage( content=( "Human approval step completed.") )
         ],
     }
 
@@ -872,16 +834,16 @@ def human_approval_agent( state: TravelState ):
 def route_after_human_approval( state: TravelState ):
 
     if state.get( "approved", False ):
-
         print( "HITL → FINAL AGENT", flush=True,)
-
         return "final_agent"
 
     print( "HITL → SUPERVISOR", flush=True)
 
     return "supervisor"
 
-
+# ============================================================
+# Final Agent
+# ============================================================
 def final_agent(state: TravelState):
     if state.get("approved", False):
         review_instruction = (
@@ -956,8 +918,8 @@ Important:
 # =========================
 
 # This graph implements the Part 3 architecture:
-# Input Guardrail → Supervisor → Dynamic Specialist Agents
-# → Itinerary → Human Review → Final Response
+# Input Guardrail → Supervisor → Dynamic Specialist Agents → Itinerary → Human Review → Final Response
+
 graph = StateGraph(TravelState)
 
 # Guardrail + Supervisor
