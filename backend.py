@@ -15,13 +15,10 @@ from langchain_core.messages import (
     SystemMessage
 )
 import json
-
 import uuid
 import psycopg
 from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres import PostgresSaver
-
-
 
 # ==========================================
 # MCP Tools
@@ -58,7 +55,6 @@ def get_database_url():
 # LLM
 # ============================================================
 
-
 from langchain_groq import ChatGroq
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -86,14 +82,12 @@ class TravelState(TypedDict, total=False):
     # -------------------------
     # Guardrail
     # -------------------------
-
     guardrail_allowed: bool
     guardrail_reason: str
 
     # -------------------------
     # Supervisor
     # -------------------------
-
     selected_agents: list[str] # whatever agent will be used will be saved here
     trip_constraints: dict[str, Any]
     supervisor_reasoning: str
@@ -101,7 +95,6 @@ class TravelState(TypedDict, total=False):
     # -------------------------
     # Specialist results
     # -------------------------
-
     flight_results: str
     hotel_results: str
     weather_results: str
@@ -111,7 +104,6 @@ class TravelState(TypedDict, total=False):
     # -------------------------
     # HITL
     # -------------------------
-
     approval_request: str
     approved: bool
     human_feedback: str
@@ -119,13 +111,11 @@ class TravelState(TypedDict, total=False):
     # -------------------------
     # Final
     # -------------------------
-
     final_response: str
 
     # -------------------------
     # Tracking
     # -------------------------
-
     llm_calls: int
 
 
@@ -141,7 +131,6 @@ KNOWN_AGENTS = {
     "itinerary_agent",
 }
 
-
 AGENT_ORDER = [
     "flight_agent",
     "hotel_agent",
@@ -149,7 +138,6 @@ AGENT_ORDER = [
     "budget_agent",
     "itinerary_agent",
 ]
-
 
 # ============================================================
 # SHARED HELPERS
@@ -163,7 +151,6 @@ def _llm_text( system_prompt: str, user_prompt: str) -> str:
         ]
     )
     return str(response.content)
-
 
 def _json_from_llm( text: str) -> dict[str, Any]:
     """
@@ -589,11 +576,9 @@ Generate:
 Return concise travel guidance.
 """
 
-
 # =========================
 # Flight Agent
 # =========================
-
 
 def flight_agent(state: TravelState):
 
@@ -602,7 +587,6 @@ def flight_agent(state: TravelState):
     query = state["user_query"]
 
     try:
-
         # aviation_mcp_call() already handles
         # async execution through mcp_client.run_async().
         # Do NOT wrap it with asyncio.run() here.
@@ -673,7 +657,6 @@ def hotel_agent(state: TravelState):
         ]
     }
 
-
 # =========================
 # Weather Agent
 # =========================
@@ -690,8 +673,7 @@ def weather_agent(state: TravelState):
         weather_data = asyncio.run( weather_mcp_search(city))
         
         # Forecast
-        forecast_data = asyncio.run( forecast_mcp_search(city) )
-        
+        forecast_data = asyncio.run( forecast_mcp_search(city) ) 
 
         weather_results = f"""
 Current Weather:
@@ -722,7 +704,6 @@ Forecast:
             )
         ],
     }
-
 
 # =========================
 # Budget Agent
@@ -970,7 +951,6 @@ Important:
     }
 
 
-
 # =========================
 # Build Graph
 # =========================
@@ -978,46 +958,30 @@ Important:
 # This graph implements the Part 3 architecture:
 # Input Guardrail → Supervisor → Dynamic Specialist Agents
 # → Itinerary → Human Review → Final Response
-
 graph = StateGraph(TravelState)
 
-# -------------------------
 # Guardrail + Supervisor
-# -------------------------
 graph.add_node("input_guardrail", input_guardrail)
 graph.add_node("guardrail_blocked", guardrail_blocked_agent)
 graph.add_node("supervisor", supervisor_agent)
 
-# -------------------------
 # Specialist Agents
-# -------------------------
 graph.add_node("flight_agent", flight_agent)
 graph.add_node("hotel_agent", hotel_agent)
 graph.add_node("weather_agent", weather_agent)
 graph.add_node("budget_agent", budget_agent)
 graph.add_node("itinerary_agent", itinerary_agent)
 
-# -------------------------
 # Human-in-the-Loop
-# -------------------------
 graph.add_node("human_approval", human_approval_agent)
 
-# -------------------------
 # Final Response
-# -------------------------
 graph.add_node("final_agent", final_agent)
 
-
-# ============================================================
 # START → INPUT GUARDRAIL
-# ============================================================
-
 graph.add_edge(  START, "input_guardrail")
 
-# ============================================================
 # INPUT GUARDRAIL → SUPERVISOR / BLOCK
-# ============================================================
-
 graph.add_conditional_edges(
     "input_guardrail",
     route_after_guardrail,
@@ -1027,28 +991,17 @@ graph.add_conditional_edges(
     }
 )
 
-
-# ============================================================
 # BLOCKED → END
-# ============================================================
-
 graph.add_edge( "guardrail_blocked", END)
 
-# ============================================================
 # SUPERVISOR → DYNAMIC AGENT
-# ============================================================
-
 graph.add_conditional_edges(
     "supervisor",
     route_from_supervisor,
     ROUTE_MAP
 )
 
-
-# ============================================================
 # SPECIALIST AGENTS → NEXT SELECTED AGENT
-# ============================================================
-
 graph.add_conditional_edges(
     "flight_agent",
     route_after_agent("flight_agent"),
@@ -1071,17 +1024,10 @@ graph.add_conditional_edges(
     ROUTE_MAP
 )
 
-
-# ============================================================
 # ITINERARY → HUMAN REVIEW
-# ============================================================
-
 graph.add_edge( "itinerary_agent", "human_approval")
 
-# ============================================================
 # HUMAN REVIEW → FINAL / SUPERVISOR
-# ============================================================
-
 graph.add_conditional_edges(
     "human_approval",
     route_after_human_approval,
@@ -1091,10 +1037,7 @@ graph.add_conditional_edges(
     }
 )
 
-# ============================================================
 # FINAL → END
-# ============================================================
-
 graph.add_edge( "final_agent", END)
 
 
